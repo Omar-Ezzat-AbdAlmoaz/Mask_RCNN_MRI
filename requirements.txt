@@ -1,0 +1,13 @@
+django
+opencv-python
+numpy
+matplotlib
+torch
+torchvision
+Pillow
+detectron2 @ git+https://github.com/facebookresearch/detectron2.git
+
+#pip install django opencv-python numpy matplotlib torch torchvision Pillow
+#pip install 'git+https://github.com/facebookresearch/detectron2.git'
+
+
