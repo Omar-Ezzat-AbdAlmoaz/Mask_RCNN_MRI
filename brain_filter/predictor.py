@@ -1,36 +1,18 @@
-# brain_filter/predictor.py
+#predict.py
+import numpy as np
+from tensorflow.keras.preprocessing import image
+from .setup import model
 
-import torch
-from PIL import Image
-from torchvision import transforms
-import os
-from brain_filter.setup import load_model, get_feature_extractor
-from brain_filter.config import MODEL_PATH, DEVICE, THRESHOLD
+def is_brain(image_file) -> bool:
+    """
+    بياخد صورة من request.FILES ويرجع True لو فيها tumor, False otherwise.
+    """
+    img = image.load_img(image_file, target_size=(224, 224))
+    img_array = image.img_to_array(img)
+    img_array = img_array / 255.0
+    img_array = np.expand_dims(img_array, axis=0)
 
-# Download the model and VGG once
-model = load_model(MODEL_PATH)
-vgg = get_feature_extractor()
-loss_fn = torch.nn.MSELoss()
+    prediction = model.predict(img_array)
+    result = prediction[0][0] > 0.5
 
-# Image Processing
-transform = transforms.Compose([
-    transforms.Resize((128, 128)),
-    transforms.ToTensor(),
-    transforms.Normalize([0.5]*3, [0.5]*3)
-])
-
-# Get features from VGG
-def get_features(img):
-    return vgg(img)
-
-# Predict whether or not the image is a brain or not
-def is_brain_image(image):
-    img = Image.open(image).convert("RGB")
-    img_tensor = transform(img).unsqueeze(0).to(DEVICE)
-
-    with torch.no_grad():
-        output = model(img_tensor)
-        loss = loss_fn(get_features(output), get_features(img_tensor)).item()
-
-    is_brain = loss <= THRESHOLD
-    return is_brain
+    return bool(result)
